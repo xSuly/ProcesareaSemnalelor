@@ -1,0 +1,12 @@
+Laborator 1 - ex 3 - 16oct
+Albei Liviu-Andrei === CTI 461
+
+Un semnal este digitalizat cu o frecventa de esantionare de 2000Hz.
+a) Intervalul de timp dintre 2 esantioane? 
+R:      f = 1/t, t = timp, => f/1 = 1/t (inmultim pe diagonala) => f * t = 1 => t = 1/f
+        f este frecventa (2000Hz) => t = 1/2000 => t = 0.0005
+
+b) Un esantion este memorat pe 4 biti, cati bytes ocupa 1 ora de achizitie?
+R:      cum 1 byte are 8 biti, si un esantion are 4 biti => 1 byte are 2 esantioane (fiecare a cate 4 biti)
+        2000Hz * 3600(o ora in secunde) / 2(esantioane) = 1000 * 3600 = 3600000 bytes/ora
+
