@@ -1,0 +1,17 @@
+Avem P_semnal = 90dB
+si SNR_dB = 80dB
+
+SNR_dB = 10 lg SNR
+
+SNR = P_semnal / P_zgomot
+
+P_zgomot = ?
+
+Inlocuim in formula SNR_dB sa aflam SNR simplu <=>
+
+80dB = 10 lg SNR => 8 = lg SNR => SNR = 10^8
+
+Inlocuim acum in formula SNR <=> 10^8 = P_semnal / P_zgomot
+P_zgomot = P_semnal / 10^8
+P_zgomot = 90 / 10^8
+P_zgomot = 90 * 10^(-8) => P_zgomot = 9dB
