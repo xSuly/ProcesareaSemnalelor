@@ -9,9 +9,9 @@ pi = np.pi
 
 fs = 100
 Nw = 200
-t = np.linspace(0, 0.1, Nw)
+t = np.linspace(0, 1, Nw)
 x = np.sin(2*pi*fs*t) #A = 1 deci sinusoida unitara
-#phi = 0 DE REFACUT
+#phi = 0
 
 def fereastra_dreptunghiulara(X):
     w = np.ones(len(X))
