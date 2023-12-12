@@ -3,6 +3,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from statsmodels.tsa.ar_model import AutoReg
 
 pi = np.pi
 
@@ -26,17 +27,43 @@ axs[2].set_title('sezon')
 axs[3].plot(x, variatii_mici, 'green')
 axs[3].set_title('variatii mici')
 plt.tight_layout()
+
+plt.savefig("Lab8/grafice/lab8_ex1_a.png")
 plt.show()
+
+
 
 #subpct B
 
 autocorelatie = np.correlate(serie_timp, serie_timp, mode = "full")
-
+corelatie_all = np.arange(0, N)
 
 plt.figure(2)
 
-plt.plot(x, autocorelatie)
+plt.plot(corelatie_all, autocorelatie[N-1:]) #avem N-1 pentru ca da eroare la dimensiune 1000 si 1999, deci trebuie un N-1 sa fie cu 9 la final
 
-plt.title('Vectorul de autocorelație al seriei de timp')
+plt.title('Vectorul de autocorelație al seriei de timp') #e asa descendent pentru ca luam jumatatea din dreapta, in stanga urca si in dreapta coboara si se corecteaza din ce in ce mai mult
+plt.savefig("Lab8/grafice/lab8_ex1_b.png")
 plt.show()
+
+
+
+#subpct C
+p = 21
+model = AutoReg(serie_timp, lags=p)
+model_fit = model.fit()
+
+lungime_predictii = 1555
+start_predictions = len(serie_timp)
+end_predictions = start_predictions + lungime_predictii - 1 #primesc eroare ca are lungime 1556 deci mai scad 1
+predictii = model_fit.predict(start = start_predictions, end = end_predictions)
+
+plt.figure(3)
+plt.title('Serie + predictii')
+plt.plot(x, serie_timp, 'blue')
+plt.plot(np.arange(N, N + lungime_predictii), predictii, 'red', label='AR Model')
+
+plt.savefig("Lab8/grafice/lab8_ex1_c.png")
+plt.show()
+
 
