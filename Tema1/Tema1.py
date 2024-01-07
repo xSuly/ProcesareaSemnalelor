@@ -51,57 +51,66 @@ plt.imshow(YCbCr_image_afisare) #din imainea noastra are valori intre 0 si 255 (
 plt.title('YCbCr Image') #se seteaza la 0 iar daca sunt mai mari decat 255, se seteaza la 255
 plt.show()
 
+matrice_CbCr = ([[17, 18, 24, 47, 99, 99, 99, 99],
+                [18, 21, 26, 66, 99, 99, 99, 99],
+                [24, 26, 56, 99, 99, 99, 99, 99],
+                [47, 66, 99, 99, 99, 99, 99, 99],
+                [99, 99, 99, 99, 99, 99, 99, 99],
+                [99, 99, 99, 99, 99, 99, 99, 99],
+                [99, 99, 99, 99, 99, 99, 99, 99],
+                [99, 99, 99, 99, 99, 99, 99, 99]]) #matricea Q_Jpeg o folosim pentru componenta Y (lumina) iar aceasta matrice pentru
+#componentele Cb si Cr (componentele pentru albastru si rosu)
 
-blocuri_originale_ycbcr = [] #folosim pentru a face append sa vedem cum functioneaza exact codul si pt a afisa in final concatenarea corecta
-blocuri_jpeg_ycbcr = []
+canalul_Y = [] #folosim pentru a face append sa vedem cum functioneaza exact codul si pt a afisa in final concatenarea corecta
+canalul_Cb = []
+canalul_Cr = []
 
-for i in range(0, YCbCr_image.shape[0], 8): 
-    for j in range(0, YCbCr_image.shape[1], 8):
-        block = YCbCr_image[i:i+8, j:j+8, 0]  
-        y = dctn(block)  
-        y_jpeg = np.round(y / Q_jpeg) * Q_jpeg  
-        x_jpeg = idctn(y_jpeg)
-        blocuri_originale_ycbcr.append(block)
-        blocuri_jpeg_ycbcr.append(x_jpeg)
+for canal in range(YCbCr_image.shape[2]): #facem operatiile de comprimare DCT pe fiecare canal iar la final le unim pe toate cele 3 canale
+    if canal == 0:
+        Q_jpeg_folosit = Q_jpeg
+    else:
+        Q_jpeg_folosit = matrice_CbCr
+    blocuri_comprimate = []
+    for i in range(0, YCbCr_image.shape[0], 8): 
+        for j in range(0, YCbCr_image.shape[1], 8):
+            block = YCbCr_image[i:i+8, j:j+8, canal]  
+            y = dctn(block)  
+            y_jpeg = np.round(y / Q_jpeg_folosit) * Q_jpeg_folosit  
+            x_jpeg = idctn(y_jpeg)
+            blocuri_comprimate.append(x_jpeg)
+
+    if canal == 0:
+        canalul_Y = blocuri_comprimate
+    if canal == 1:
+        canalul_Cb = blocuri_comprimate
+    if canal == 2:
+        canalul_Cr = blocuri_comprimate #adaugam fiecare componenta in matricea sa
+
+imagine_comprimata_final = np.stack([np.block([canalul_Y[i : i + 8*8] for i in range(0, len(canalul_Y), 8*8)]),
+                                      np.block([canalul_Cb[i : i + 8*8] for i in range(0, len(canalul_Cb), 8*8)]),
+                                        np.block([canalul_Cr[i : i + 8*8] for i in range(0, len(canalul_Cr), 8*8)])], axis=2)
+
 
 
 #################################
 
-plt.subplot(2, 2, 1)
+plt.subplot(2, 1, 1)
 concatenated_image_original = np.concatenate([np.concatenate(row, axis=1) for row in np.array_split(blocuri_originale, X.shape[0]//8)], axis=0)
 plt.imshow(concatenated_image_original, cmap = 'grey') #np.array_split impartea matricea noastra intr-un array de submatrici ca nr luand dimensiunea(x) din X impartita la 8 (deci 512 / 8) cu valori 8x8
 plt.title('Blocuri Originale') #apoi se face concatenate pe fiecare rand sub forma unei liste iar mai apoi lista se concateneaza pe axa 0 (adica vertical)
 
 
-plt.subplot(2, 2, 2)
+plt.subplot(2, 1, 2)
 concatenated_image_jpeg = np.concatenate([np.concatenate(row, axis=1) for row in np.array_split(blocuri_jpeg, X.shape[0]//8)], axis=0)
 plt.imshow(concatenated_image_jpeg, cmap = 'grey')
 plt.title('Blocuri JPEG')
 
-
-plt.subplot(2, 2, 3)
-concatenated_image_original2 = np.concatenate([np.concatenate(row, axis=1) for row in np.array_split(blocuri_originale_ycbcr, YCbCr_image.shape[0]//8)], axis=0)
-plt.imshow(concatenated_image_original2)
-plt.title('Blocuri Originale YCbCr')
-
-
-plt.subplot(2, 2, 4)
-concatenated_image_jpeg2 = np.concatenate([np.concatenate(row, axis=1) for row in np.array_split(blocuri_jpeg_ycbcr, YCbCr_image.shape[0]//8)], axis=0)
-plt.imshow(concatenated_image_jpeg2)
-plt.title('Blocuri JPEG YCbCr')
-
-plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.95, wspace=0.2, hspace=0.4)
-
+plt.tight_layout()
 plt.show()
 
-reformatare_catre_rgb = np.zeros_like(YCbCr_image)
-reformatare_catre_rgb[:, :, 0] = concatenated_image_jpeg2  # Canalul Y
-reformatare_catre_rgb[:, :, 1:] = YCbCr_image[:, :, 1:]  # Canalele Cb si Cr raman aceleasi
 
-# convertirea propriu zisa inapoi la RGB
-conversie_rgb_inapoi = ycbcr2rgb(reformatare_catre_rgb)
-plt.imshow(conversie_rgb_inapoi)
-plt.title('restaurare din YCbCr')
+plt.imshow(ycbcr2rgb(imagine_comprimata_final))
+plt.title('comprimare YCbCr JPEG')
 plt.show()
 
 #subpct 3
@@ -159,24 +168,37 @@ while True:
         YCbCr_frame = rgb2ycbcr(frame)
         YCbCr_image_afisare2 = np.clip(YCbCr_frame, 0, 255).astype(np.uint8)
 
-        # Aplicarea transformarilor ca la subpct 2
-        blocuri_jpeg_ycbcr = []
-        for i in range(0, YCbCr_frame.shape[0], 8):
-            for j in range(0, YCbCr_frame.shape[1], 8):
-                block = YCbCr_frame[i:i+8, j:j+8, 0]
-                y = dctn(block)
-                y_jpeg = np.round(y / Q_jpeg) * Q_jpeg
-                x_jpeg = idctn(y_jpeg)
-                blocuri_jpeg_ycbcr.append(x_jpeg)
+        canalul_Y_fps = []
+        canalul_Cb_fps = []
+        canalul_Cr_fps = []
+        
+        for canal in range(YCbCr_frame.shape[2]): 
+            if canal == 0:
+                Q_jpeg_folosit = Q_jpeg
+            else:
+                Q_jpeg_folosit = matrice_CbCr
+            blocuri_comprimate_fps = []
+            for i in range(0, YCbCr_frame.shape[0], 8): 
+                for j in range(0, YCbCr_frame.shape[1], 8):
+                    block = YCbCr_frame[i:i+8, j:j+8, canal]  
+                    y = dctn(block)  
+                    y_jpeg = np.round(y / Q_jpeg_folosit) * Q_jpeg_folosit  
+                    x_jpeg = idctn(y_jpeg)
+                    blocuri_comprimate_fps.append(x_jpeg)
 
-        #cod ca la subpct 2
-        concatenated_image_jpeg_ycbcr = np.concatenate([np.concatenate(row, axis=1) for row in np.array_split(blocuri_jpeg_ycbcr, YCbCr_frame.shape[0]//8)], axis=0)
-    
-        reformatare_catre_rgb = np.zeros_like(YCbCr_frame)
-        reformatare_catre_rgb[:, :, 0] = concatenated_image_jpeg_ycbcr
-        reformatare_catre_rgb[:, :, 1:] = YCbCr_frame[:, :, 1:]
+            if canal == 0:
+                canalul_Y_fps = blocuri_comprimate_fps
+            if canal == 1:
+                canalul_Cb_fps = blocuri_comprimate_fps
+            if canal == 2:
+                canalul_Cr_fps = blocuri_comprimate_fps #reutilizare subpct2
 
-        conversie_rgb_inapoi = ycbcr2rgb(reformatare_catre_rgb)
+        size = YCbCr_frame.shape[1] // 8
+        imagine_comprimata_final_fps = np.stack([
+            np.block([canalul_Y_fps[i : i + size] for i in range(0, len(canalul_Y_fps), size)]),
+            np.block([canalul_Cb_fps[i : i + size] for i in range(0, len(canalul_Cb_fps), size)]),
+            np.block([canalul_Cr_fps[i : i + size] for i in range(0, len(canalul_Cr_fps), size)])
+        ], axis=2)
 
         fig, axs = plt.subplots(3, 1, figsize=(8, 12))
 
@@ -186,7 +208,7 @@ while True:
         axs[1].imshow(YCbCr_image_afisare2)
         axs[1].set_title('YCbCr')
 
-        axs[2].imshow(conversie_rgb_inapoi)
+        axs[2].imshow(ycbcr2rgb(imagine_comprimata_final_fps))
         axs[2].set_title('Restaurare din YCbCr')
 
         plt.tight_layout()
@@ -194,5 +216,7 @@ while True:
 
 cap.release() #eliberam resursele
 cv2.destroyAllWindows()
+
+
 
 
